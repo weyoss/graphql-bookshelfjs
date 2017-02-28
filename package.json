@@ -4,7 +4,8 @@
   "description": "Using GraphQL with Bookshelf ORM",
   "main": "src/index.js",
   "scripts": {
-    "lint": "eslint src",
+    "test": "eslint src/*.js && mocha --reporter spec test/run/*.js",
+    "lint": "eslint src/*.js",
     "fix": "eslint src --fix"
   },
   "repository": {
@@ -26,12 +27,19 @@
     "shimmer": "1.1.0"
   },
   "devDependencies": {
+    "bookshelf": "0.10.3",
+    "chai": "3.5.0",
     "eslint": "3.15.0",
     "eslint-config-airbnb-base": "11.1.0",
     "eslint-config-google": "0.7.1",
     "eslint-config-standard": "6.2.1",
     "eslint-plugin-import": "2.2.0",
     "eslint-plugin-promise": "3.4.1",
-    "eslint-plugin-standard": "2.0.1"
+    "eslint-plugin-standard": "2.0.1",
+    "graphql": "0.9.1",
+    "knex": "0.12.7",
+    "mocha": "3.2.0",
+    "mock-knex": "0.3.7",
+    "sinon": "1.17.7"
   }
 }
