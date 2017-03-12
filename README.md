@@ -31,7 +31,15 @@ Note: 'loaders' is the only parameter needed to be initialized during graphql se
 
 ## USAGE
 
-This example shows how you could setup graphql-bookshelfjs with graphql. We assume that Article has an one-to-one 
+### EXAMPLE
+
+If you're new to the GraphQL ecosystem and have troubles getting a project up and running, or maybe you are having
+troubles using this library, check out the [example](https://github.com/weyoss/graphql-bookshelfjs/blob/master/example) 
+directory that uses GraphQL together with Graphql-bookshelfjs library.
+
+### HOW-TO
+
+The following example shows how you could setup graphql-bookshelfjs with graphql. We assume that Article has an one-to-one 
 (**belongsTo**) relationship with User. User has an many-to-many (**belongsToMany**) relationship with Account, has an 
 one-to-one (**hasOne**) relationship with Profile, and has an one-to-many (**hasMany**) with Note. Account model 
 determines whether a user is an administrator when access attribute is set to 'admin'.
