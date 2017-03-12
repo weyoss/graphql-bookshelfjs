@@ -11,7 +11,7 @@ describe('Case 7', function () {
         this.sandbox.tracker.on('query', function (query, step) {
             const responses = [
                 function () {
-                    expect(query.sql).to.equal('select `articles`.* from `articles` where `user_id` = ? and `is_published` = ?');
+                    expect(query.sql).to.equal('select `articles`.* from `articles` where `articles`.`user_id` = ? and `articles`.`is_published` = ?');
                     expect(query.bindings).to.eql([1000, true]);
                     query.response([
                         {id: 5000, user_id: 1000, title: "Title A"},

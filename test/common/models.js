@@ -1,14 +1,14 @@
 'use strict';
 
 module.exports = function (bookshelf) {
-    let Article = bookshelf.model('Article', {
+    let Article = bookshelf.Model.extend({
         tableName: 'articles',
         user: function () {
             return this.belongsTo(User);
         }
     });
 
-    let User = bookshelf.model('User', {
+    let User = bookshelf.Model.extend({
         tableName: 'users',
         notes: function () {
             return this.hasMany(Note);
@@ -24,15 +24,15 @@ module.exports = function (bookshelf) {
         }
     });
 
-    let Note = bookshelf.model('Note', {
+    let Note = bookshelf.Model.extend({
         tableName: 'notes'
     });
 
-    let Account = bookshelf.model('Account', {
+    let Account = bookshelf.Model.extend({
         tableName: 'accounts'
     });
 
-    let Profile = bookshelf.model('Profile', {
+    let Profile = bookshelf.Model.extend({
         tableName: 'profiles'
     });
 

@@ -13,8 +13,6 @@ const connection = knex(config);
 mockKnex.mock(connection);
 
 const bookshelf = require('bookshelf')(connection);
-bookshelf.plugin(['registry']);
-
 const models = require('./../common/models')(bookshelf);
 const graphQLSchema = require('./../common/schema')(models);
 

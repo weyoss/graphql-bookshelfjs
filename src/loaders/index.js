@@ -5,14 +5,14 @@ const shimmer = require('shimmer');
 
 /**
  *
- * @type {object|null}
+ * @type {!object}
  */
 let context;
 
 /**
  *
  * @param {string} key
- * @returns {DataLoader|Boolean}
+ * @returns {(DataLoader|boolean)}
  */
 function getLoader(key) {
     context.loaders = context.loaders || {};
@@ -37,7 +37,7 @@ function setLoader(key, loader) {
  * @param {object} model
  * @param {string} targetIdAttribute
  * @param {string} relationType
- * @param {object|null} queryBuilder
+ * @param {?object} queryBuilder
  * @returns {DataLoader}
  */
 function modelLoader(model, targetIdAttribute, relationType, queryBuilder) {
@@ -91,7 +91,7 @@ function modelLoader(model, targetIdAttribute, relationType, queryBuilder) {
  * @param {string} foreignKey
  * @param {string} otherKey
  * @param {string} targetIdAttribute
- * @param {object|null} queryBuilder
+ * @param {?object} queryBuilder
  * @returns {DataLoader}
  */
 function belongsToManyLoader(model, joinTableName, foreignKey, otherKey, targetIdAttribute, queryBuilder) {
@@ -114,7 +114,7 @@ function belongsToManyLoader(model, joinTableName, foreignKey, otherKey, targetI
                         '=',
                         `${joinTableName}.${otherKey}`)
                     .where(`${joinTableName}.${foreignKey}`, 'in', keys);
-            })
+                })
                 .fetchAll()
                 .then((items) => {
                     const byForeignKey = {};
@@ -149,8 +149,8 @@ function belongsTo(target) {
     shimmer.wrap(target, 'fetch', (original) => {
         return function fetch() {
             const model = this.relatedData.target;
-            const targetIdAttribute = this.relatedData.targetIdAttribute;
-            const parentFK = this.relatedData.parentFk;
+            const targetIdAttribute = this.relatedData.key('targetIdAttribute');
+            const parentFK = this.relatedData.key('parentFk');
             const knex = this._knex;
             return modelLoader(model, targetIdAttribute, 'belongsTo', knex).load(parentFK);
         };
@@ -167,7 +167,7 @@ function hasOne(target) {
         return function fetch() {
             const model = this.relatedData.target;
             const foreignKey = this.relatedData.key('foreignKey');
-            const parentFK = this.relatedData.parentFk;
+            const parentFK = this.relatedData.key('parentFk');
             const knex = this._knex;
             return modelLoader(model, foreignKey, 'hasOne', knex).load(parentFK);
         };
@@ -184,7 +184,7 @@ function hasMany(target) {
         return function fetch() {
             const model = this.relatedData.target;
             const foreignKey = this.relatedData.key('foreignKey');
-            const parentFK = this.relatedData.parentFk;
+            const parentFK = this.relatedData.key('parentFk');
             const knex = this._knex;
             return modelLoader(model, foreignKey, 'hasMany', knex).load(parentFK);
         };
@@ -204,7 +204,7 @@ function belongsToMany(target) {
             const foreignKey = this.relatedData.key('foreignKey');
             const otherKey = this.relatedData.key('otherKey');
             const targetIdAttribute = this.relatedData.key('targetIdAttribute');
-            const parentFK = this.relatedData.parentFk;
+            const parentFK = this.relatedData.key('parentFk');
             const knex = this._knex;
             return belongsToManyLoader(model, joinTableName, foreignKey, otherKey, targetIdAttribute, knex)
                 .load(parentFK);

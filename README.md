@@ -50,17 +50,17 @@ let dbConfig = {
     },
     debug: true
 };
-let Knex = require('knex')(dbConfig);
-let bookshelf = require('bookshelf')(Knex);
+let knex = require('knex')(dbConfig);
+let bookshelf = require('bookshelf')(knex);
 
-let Article = bookshelf.model('Article', {
+let Article = bookshelf.Model.extend({
     tableName: 'articles',
     user: function () {
         return this.belongsTo(User);
     }
 });
 
-let User = bookshelf.model('User', {
+let User = bookshelf.Model.extend({
     tableName: 'users',
     notes: function () {
        return this.hasMany(Note);
@@ -76,15 +76,15 @@ let User = bookshelf.model('User', {
     }
 });
 
-let Note = Bookshelf.model('Note', {
+let Note = Bookshelf.Model.extend({
     tableName: 'notes'
 });
 
-let Account = bookshelf.model('Account', {
+let Account = bookshelf.Model.extend({
     tableName: 'accounts'
 });
 
-let Profile = bookshelf.model('Profile', {
+let Profile = bookshelf.Model.extend({
     tableName: 'profiles'
 });
 ```
@@ -360,7 +360,6 @@ Debug log:
   sql: 'select `notes`.* from `notes` where `user_id` in (?, ?, ?)' }
 
 ```
-
 ## ADVANCED USAGE
 
 ```javascript
@@ -370,21 +369,9 @@ let UserType = new graphQL.GraphQLObjectType({
        id: {
            type: graphQL.GraphQLString
        },
-       name: {
-           type: graphQL.GraphQLString
-       },
-       profile: {
-           type: ProfileType,
-           resolve: graphQLBookshelf.resolverFactory(User)
-       },
-       notes: {
-           type: new graphQL.GraphQLList(NoteType),
-           resolve: graphQLBookshelf.resolverFactory(User)
-       },
-       accounts: {
-           type: new graphQL.GraphQLList(AccountType),
-           resolve: graphQLBookshelf.resolverFactory(User)
-       },
+       
+       // ...
+       
        adminAccounts: {
            type: new graphQL.GraphQLList(AccountType),
            resolve: function resolver(modelInstance, args, context, info) {
@@ -401,6 +388,77 @@ let UserType = new graphQL.GraphQLObjectType({
        }
     }
 });
+```
+
+### Using 'extra' parameter (from v1.0.2)
+
+Starting from release 1.0.2, 'extra' parameter was added to resolver. Query parameters from client requests are 
+automatically translated into where closes. Sometimes we need to execute complex queries (using order by, limit, etc.), 
+when dealing with pagination for example. So 'extra' parameter was added to enable us to apply any knex query builder 
+method to our bookshelf model. In the listing bellow you can see how you could use 'extra' parameter:
+  
+```javascript
+    let RootQuery = new graphQL.GraphQLObjectType({
+        name: 'RootQuery',
+        fields: {
+            articles: {
+                type: new graphQL.GraphQLList(ArticleType),
+                args: {
+                    user_id: {
+                        type: graphQL.GraphQLInt
+                    },
+                    published: {
+                        type: graphQL.GraphQLBoolean
+                    },
+                    from: {
+                        type: graphQL.GraphQLInt
+                    },
+                    count: {
+                        type: graphQL.GraphQLInt
+                    },
+                },
+                resolve: function resolver(modelInstance, args, context, info) {
+                    const count = args.count || 5;
+                    const extra = {
+                        query: [function(db) {
+                            db.limit( count );
+                        }],
+                        orderBy: ['id', 'DESC']
+                    };
+                    !args.from || (extra.where = ['id', '<', args.from]);
+                    
+                    // 'from' and 'count' parameters are not model attributes, so let's get rid of them
+                    delete args.from;
+                    delete args.count;
+                    
+                    const resolver = graphQLBookshelf.resolverFactory(models.Article);
+                    return resolver(modelInstance, args, context, info, extra);
+                }
+            },
+        }
+    });
+```
+
+To make it more clear, the following:
+
+```javascript
+const extra = {
+    query: [function(db) {
+        db.limit( 5 );
+    }],
+    orderBy: ['id', 'DESC'],
+    where: ['id', '<', 10045]
+};
+```
+
+is the same as: 
+
+```javascript
+knexQueryBuilder.query(function(db) {
+    db.limit( count );
+});
+knexQueryBuilder.orderBy('id', 'DESC');
+knexQueryBuilder.where('id', '<', 10045);
 ```
 
 ## BUGS

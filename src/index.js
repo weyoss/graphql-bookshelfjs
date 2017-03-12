@@ -14,15 +14,15 @@ module.exports = {
 
     /**
      *
-     * @param {object} target bookshelf model
-     * @returns {resolver}
+     * @param {Object} Target
+     * @returns {function}
      */
-    resolverFactory: function resolverFactory(target) {
+    resolverFactory: function resolverFactory(Target) {
         function serialize(collection) {
             function serializeItem(item) {
-                const s = item.serialize();
-                s._model = item;
-                return s;
+                // quick fix, allowing to both resolvers to get actual model instances and
+                // to GraphQL to access model attributes
+                return Object.assign(item, item.serialize({ shallow: true }));
             }
             if (collection) {
                 if (collection.hasOwnProperty('length')) {
@@ -33,19 +33,24 @@ module.exports = {
             return collection;
         }
 
-        return function resolver(modelInstance, args, context, info) {
-            const isAssociation = (typeof target.prototype[info.fieldName] === 'function');
-            if (isAssociation) {
-                const related = modelInstance._model.related(info.fieldName);
-                context && context.loaders && context.loaders(related);
-                for (const key in args) {
-                    related.where(`${related.tableName}.${key}`, args[key]);
-                }
-                return related.fetch().then((c) => { return serialize(c); });
+        return function resolver(modelInstance, args, context, info, extra) {
+            const isAssociation = (typeof Target.prototype[info.fieldName] === 'function');
+            const model = isAssociation ? modelInstance.related(info.fieldName) : new Target();
+            for (const key in args) {
+                model.where(`${model.tableName}.${key}`, args[key]);
             }
-            const collection = (info.returnType.constructor.name === 'GraphQLList');
-            const fn = collection ? 'fetchAll' : 'fetch';
-            return target.where(args)[fn]().then((c) => { return serialize(c); });
+            if (extra) {
+                for (const key in extra) {
+                    model[key](...extra[key]);
+                    delete extra.key;
+                }
+            }
+            if (isAssociation) {
+                context && context.loaders && context.loaders(model);
+                return model.fetch().then((c) => { return serialize(c); });
+            }
+            const fn = (info.returnType.constructor.name === 'GraphQLList') ? 'fetchAll' : 'fetch';
+            return model[fn]().then((c) => { return serialize(c); });
         };
     },
 
