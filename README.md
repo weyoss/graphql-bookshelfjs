@@ -2,9 +2,8 @@
 
 ## SYNOPSIS
 
-A simple bridge between your graphql queries and your bookshelf models. This library resolves graphql queries which in 
-turn resolve into bookshelf queries behind the scenes. It will perform **batched** and **optimised** queries, 
-during graphql requests.
+A simple bridge between your graphql queries and your bookshelf models. This library resolves graphql queries to 
+**batched** and **optimised** queries using bookshelf models.
 
 ## INSTALL
 
@@ -33,18 +32,24 @@ Note: 'loaders' is the only parameter needed to be initialized during graphql se
 
 ### EXAMPLE
 
-If you're new to the GraphQL ecosystem and have troubles getting a project up and running, or maybe you are having
-troubles using this library, check out the [example](https://github.com/weyoss/graphql-bookshelfjs/blob/master/example) 
-directory that uses GraphQL together with Graphql-bookshelfjs library.
+If you're new to the GraphQL ecosystem and have troubles getting a project up and running or maybe you are confused
+about how to use this library then check out the [example](https://github.com/weyoss/graphql-bookshelfjs/blob/master/example) 
+folder to get started.
 
 ### HOW-TO
 
-The following example shows how you could setup graphql-bookshelfjs with graphql. We assume that Article has an one-to-one 
-(**belongsTo**) relationship with User. User has an many-to-many (**belongsToMany**) relationship with Account, has an 
-one-to-one (**hasOne**) relationship with Profile, and has an one-to-many (**hasMany**) with Note. Account model 
-determines whether a user is an administrator when access attribute is set to 'admin'.
+The following shows how you could setup graphql-bookshelfjs with graphql. 
 
-Bookshelf models:
+Let's assume: 
+
+- We have 4 models: Article, User, Account and Note.
+- Article has a **one-to-one** (belongsTo) relationship with User.
+- User has a **many-to-many** (belongsToMany) relationship with Account.
+- User has a **one-to-one** (hasOne) relationship with Profile. 
+- User has a **one-to-many** (hasMany) relationship with Note.
+- A user account has Administrator privileges when access attribute is set to 'admin'.
+
+#### Bookshelf models
 
 ```javascript
 let dbConfig = {
@@ -97,7 +102,7 @@ let Profile = bookshelf.Model.extend({
 });
 ```
 
-Graphql types:
+#### Graphql types
 
 ```javascript
 let graphQL = require('graphql');
@@ -221,13 +226,13 @@ let RootQuery = new graphQL.GraphQLObjectType({
 });
 ```
 
-Graphql schema:
+#### Graphql schema
 
 ```javascript
 const graphQLSchema = new graphQL.GraphQLSchema({query: RootQuery});
 ```
 
-Sample client query:
+#### Sample client query
 
 ```javascript
 let queryString = 
@@ -259,7 +264,7 @@ let queryString =
 }`;
 ```
 
-Initialize graphql:
+#### Initialize graphql
 
 ```javascript
 graphQL.graphql( graphQLSchema, queryString, null, { loaders: graphQLBookshelf.getLoaders() }).then(function(result) {
@@ -267,7 +272,7 @@ graphQL.graphql( graphQLSchema, queryString, null, { loaders: graphQLBookshelf.g
 });
 ```
 
-Sample output:
+#### Sample output
 
 ```text
 {
@@ -321,7 +326,7 @@ Sample output:
 }
 ```
 
-Debug log:
+#### Debug log
 
 ```text
 { method: 'select',
@@ -400,10 +405,13 @@ let UserType = new graphQL.GraphQLObjectType({
 
 ### Using 'extra' parameter (from v1.0.2)
 
-Starting from release 1.0.2, 'extra' parameter was added to resolver. Query parameters from client requests are 
-automatically translated into where closes. Sometimes we need to execute complex queries (using order by, limit, etc.), 
-when dealing with pagination for example. So 'extra' parameter was added to enable us to apply any knex query builder 
-method to our bookshelf model. In the listing bellow you can see how you could use 'extra' parameter:
+Starting from release 1.0.2, 'extra' parameter was added to resolver. 
+
+Query parameters from client requests are automatically translated into where closes. Sometimes we need to have more 
+control of our models using complex queries (when dealing with pagination for example). With the help of 'extra' 
+parameter we can apply any knex query builder method to our bookshelf model. 
+
+In the listing bellow you can see how you could use 'extra' parameter:
   
 ```javascript
     let RootQuery = new graphQL.GraphQLObjectType({
