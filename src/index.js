@@ -2,40 +2,46 @@
 
 const loaders = require('./loaders');
 
+/**
+ * Quick workaround allowing GraphQL to access model attributes directly
+ * (to access a bookshelf model attribute (like model.name), we have to use the .get() method)
+ *
+ * @param {object} collection
+ * @returns {*}
+ */
+function exposeAttributes(collection) {
+    function exposeModelAttributes(item) {
+        // Make sure that relations are excluded
+        return Object.assign(item, item.serialize({ shallow: true }));
+    }
+    if (collection) {
+        if (collection.hasOwnProperty('length')) {
+            return collection.map((item) => { return exposeModelAttributes(item); });
+        }
+        return exposeModelAttributes(collection);
+    }
+    return collection;
+}
+
 module.exports = {
 
     /**
      *
      * @returns {function}
      */
-    getLoaders: function getLoaders() {
+    getLoaders() {
         return loaders;
     },
 
     /**
      *
-     * @param {Object} Target
+     * @param {function} Model
      * @returns {function}
      */
-    resolverFactory: function resolverFactory(Target) {
-        function serialize(collection) {
-            function serializeItem(item) {
-                // quick fix, allowing to both resolvers to get actual model instances and
-                // to GraphQL to access model attributes
-                return Object.assign(item, item.serialize({ shallow: true }));
-            }
-            if (collection) {
-                if (collection.hasOwnProperty('length')) {
-                    return collection.map((item) => { return serializeItem(item); });
-                }
-                return serializeItem(collection);
-            }
-            return collection;
-        }
-
+    resolverFactory(Model) {
         return function resolver(modelInstance, args, context, info, extra) {
-            const isAssociation = (typeof Target.prototype[info.fieldName] === 'function');
-            const model = isAssociation ? modelInstance.related(info.fieldName) : new Target();
+            const isAssociation = (typeof Model.prototype[info.fieldName] === 'function');
+            const model = isAssociation ? modelInstance.related(info.fieldName) : new Model();
             for (const key in args) {
                 model.where(`${model.tableName}.${key}`, args[key]);
             }
@@ -47,10 +53,10 @@ module.exports = {
             }
             if (isAssociation) {
                 context && context.loaders && context.loaders(model);
-                return model.fetch().then((c) => { return serialize(c); });
+                return model.fetch().then((c) => { return exposeAttributes(c); });
             }
             const fn = (info.returnType.constructor.name === 'GraphQLList') ? 'fetchAll' : 'fetch';
-            return model[fn]().then((c) => { return serialize(c); });
+            return model[fn]().then((c) => { return exposeAttributes(c); });
         };
     },
 
