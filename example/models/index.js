@@ -1,27 +1,30 @@
 'use strict';
 
 module.exports = function models(bookshelf) {
-    let User = bookshelf.Model.extend({
+    const User = bookshelf.Model.extend({
         tableName: 'users',
     });
-    let Comment = bookshelf.Model.extend({
+
+    const Comment = bookshelf.Model.extend({
         tableName: 'comments',
-        user: function () {
-            return this.belongsTo(User);
-        }
-    });
-    let Article = bookshelf.Model.extend({
-        tableName: 'articles',
-        user: function () {
+        user() {
             return this.belongsTo(User);
         },
-        comments: function () {
-            return this.hasMany(Comment);
-        }
     });
+
+    const Article = bookshelf.Model.extend({
+        tableName: 'articles',
+        user() {
+            return this.belongsTo(User);
+        },
+        comments() {
+            return this.hasMany(Comment);
+        },
+    });
+
     return {
         User,
         Article,
-        Comment
-    }
+        Comment,
+    };
 };

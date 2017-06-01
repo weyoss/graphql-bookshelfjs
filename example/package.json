@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "bookshelf": "0.10.3",
     "graphql": "0.9.1",
-    "graphql-bookshelfjs": "1.0.1",
+    "graphql-bookshelfjs": "1.0.3",
     "knex": "0.12.7",
     "sqlite3": "3.1.8"
   }

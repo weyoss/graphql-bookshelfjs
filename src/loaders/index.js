@@ -114,24 +114,24 @@ function belongsToManyLoader(model, joinTableName, foreignKey, otherKey, targetI
                         '=',
                         `${joinTableName}.${otherKey}`)
                     .where(`${joinTableName}.${foreignKey}`, 'in', keys);
-                })
-                .fetchAll()
-                .then((items) => {
-                    const byForeignKey = {};
-                    items.forEach((item) => {
-                        const key = item.attributes[foreignKey];
-                        byForeignKey[key] = byForeignKey[key] ?
-                            byForeignKey[key] :
-                            [];
-                        byForeignKey[key].push(item);
-                    });
-                    return keys.map((key) => {
-                        if (byForeignKey.hasOwnProperty(key)) {
-                            return byForeignKey[key];
-                        }
-                        return [];
-                    });
+            })
+            .fetchAll()
+            .then((items) => {
+                const byForeignKey = {};
+                items.forEach((item) => {
+                    const key = item.attributes[foreignKey];
+                    byForeignKey[key] = byForeignKey[key] ?
+                        byForeignKey[key] :
+                        [];
+                    byForeignKey[key].push(item);
                 });
+                return keys.map((key) => {
+                    if (byForeignKey.hasOwnProperty(key)) {
+                        return byForeignKey[key];
+                    }
+                    return [];
+                });
+            });
         }, {
             cache: false,
         });
@@ -200,7 +200,8 @@ function belongsToMany(target) {
     shimmer.wrap(target, 'fetch', (original) => {
         return function fetch() {
             const model = this.relatedData.target;
-            const joinTableName = this.relatedData.key('joinTableName');
+            const joinTableName = this.relatedData.key('joinTableName') ||
+                [this.tableName(), this.relatedData.key('parentTableName')].sort().join('_');
             const foreignKey = this.relatedData.key('foreignKey');
             const otherKey = this.relatedData.key('otherKey');
             const targetIdAttribute = this.relatedData.key('targetIdAttribute');

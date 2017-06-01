@@ -1,19 +1,18 @@
 'use strict';
 
-
-exports.up = function(knex, Promise) {
+exports.up = function up(knex, Promise) {
     return Promise.all([
-        knex.schema.createTable('users', function(table) {
+        knex.schema.createTable('users', (table) => {
             table.increments('id').primary();
             table.string('username').notNull();
             table.string('password').notNull();
             table.string('email').notNull();
-        })
+        }),
     ]);
 };
 
-exports.down = function(knex, Promise) {
+exports.down = function down(knex, Promise) {
     return Promise.all([
-        knex.schema.dropTable('users')
+        knex.schema.dropTable('users'),
     ]);
 };

@@ -32,8 +32,8 @@ const queryString =
     } 
 }`;
 
-graphQL.graphql(graphQLSchema, queryString, null, {loaders: graphQLBookshelf.getLoaders()})
-    .then(function (results) {
-        console.log( JSON.stringify(results, null, 4) );
+graphQL.graphql(graphQLSchema, queryString, null, { loaders: graphQLBookshelf.getLoaders() })
+    .then((results) => {
+        console.log(JSON.stringify(results, null, 4));
         process.exit(0);
     });
