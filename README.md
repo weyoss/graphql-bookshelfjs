@@ -21,7 +21,7 @@ graphql(
     query, 
     null, 
     { 
-        loaders: graphQLBookshelf.getLoaders() // include loaders for performing batch queries
+        loaders: graphQLBookshelf.getLoaders() // include loaders in the context object for performing batch queries
     }
 )
 ```
@@ -49,7 +49,7 @@ Let's assume:
 - User has a **one-to-many** (hasMany) relationship with Note.
 - A user account has Administrator privileges when access attribute is set to 'admin'.
 
-#### Bookshelf models
+#### BOOKSHELF MODELS
 
 ```javascript
 let dbConfig = {
@@ -102,7 +102,7 @@ let Profile = bookshelf.Model.extend({
 });
 ```
 
-#### Graphql types
+#### GRAPHQL TYPES
 
 ```javascript
 let graphQL = require('graphql');
@@ -226,13 +226,13 @@ let RootQuery = new graphQL.GraphQLObjectType({
 });
 ```
 
-#### Graphql schema
+#### GRAPHQL SCHEMA
 
 ```javascript
 const graphQLSchema = new graphQL.GraphQLSchema({query: RootQuery});
 ```
 
-#### Sample client query
+#### CLIENT QUERY SAMPLE
 
 ```javascript
 let queryString = 
@@ -264,7 +264,7 @@ let queryString =
 }`;
 ```
 
-#### Initialize graphql
+#### GRAPHQL INITIALIZATION
 
 ```javascript
 graphQL.graphql( graphQLSchema, queryString, null, { loaders: graphQLBookshelf.getLoaders() }).then(function(result) {
@@ -272,7 +272,7 @@ graphQL.graphql( graphQLSchema, queryString, null, { loaders: graphQLBookshelf.g
 });
 ```
 
-#### Sample output
+#### OUTPUT SAMPLE
 
 ```text
 {
@@ -326,50 +326,26 @@ graphQL.graphql( graphQLSchema, queryString, null, { loaders: graphQLBookshelf.g
 }
 ```
 
-#### Debug log
+#### DEBUG LOG
 
 ```text
-{ method: 'select',
-  options: {},
-  timeout: false,
-  cancelOnTimeout: false,
+{ ...
   bindings: [],
-  __knexQueryUid: '10f052b5-331d-4746-942d-b6c426126eb3',
   sql: 'select `articles`.* from `articles`' }
-{ method: 'select',
-  options: {},
-  timeout: false,
-  cancelOnTimeout: false,
+{ ...
   bindings: [ 55, 66, 66 ],
-  __knexQueryUid: '8bff4fa8-96c3-497d-88e5-5b7a4d8bc5f7',
   sql: 'select `users`.* from `users` where `id` in (?, ?, ?)' }
-{ method: 'select',
-  options: {},
-  timeout: false,
-  cancelOnTimeout: false,
+{ ...
   bindings: [ 55, 66, 66 ],
-  __knexQueryUid: '833761ac-8607-490b-98ab-2d25d3198c65',
   sql: 'select `profiles`.* from `profiles` where `user_id` in (?, ?, ?)' }
-{ method: 'select',
-  options: {},
-  timeout: false,
-  cancelOnTimeout: false,
+{ ...
   bindings: [ 55, 66, 66 ],
-  __knexQueryUid: '7c4bfd0e-618a-42eb-a1e3-287450735a27',
   sql: 'select `accounts`.*, `users_accounts`.* from `accounts` left join `users_accounts` on `accounts`.`id` = `users_accounts`.`account_id` where `users_accounts`.`user_id` in (?, ?, ?)' }
-{ method: 'select',
-  options: {},
-  timeout: false,
-  cancelOnTimeout: false,
+{ ...
   bindings: [ 'admin', 55, 66, 66 ],
-  __knexQueryUid: '0dacc8d6-c6b0-43a0-ae21-67b82b3d4dfa',
   sql: 'select `accounts`.*, `users_accounts`.* from `accounts` left join `users_accounts` on `accounts`.`id` = `users_accounts`.`account_id` where `access` = ? and `users_accounts`.`user_id` in (?, ?, ?)' }
-{ method: 'select',
-  options: {},
-  timeout: false,
-  cancelOnTimeout: false,
+{ ...
   bindings: [ 55, 66, 66 ],
-  __knexQueryUid: '8688e57c-7fbf-4c58-984f-17154d3254b0',
   sql: 'select `notes`.* from `notes` where `user_id` in (?, ?, ?)' }
 
 ```
@@ -403,7 +379,7 @@ let UserType = new graphQL.GraphQLObjectType({
 });
 ```
 
-### Using 'extra' parameter (from v1.0.2)
+### USING 'extra' PARAMETER
 
 Starting from release 1.0.2, 'extra' parameter was added to resolver. 
 
@@ -477,11 +453,9 @@ knexQueryBuilder.orderBy('id', 'DESC');
 knexQueryBuilder.where('id', '<', 10045);
 ```
 
-## BUGS
+## CONTRIBUTING
 
-This library is a work in progress. If you find any bugs, please let me know. Open a 
-[issue](https://github.com/weyoss/graphql-bookshelfjs/issues) into github (including the case to reproduce the bug when 
-possible).
+So you are interested in contributing to this project? Please see [CONTRIBUTING.md](https://github.com/weyoss/guidelines/blob/master/CONTRIBUTIONS.md).
 
 ## SEE ALSO
 
