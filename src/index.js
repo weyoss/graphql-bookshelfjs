@@ -48,7 +48,7 @@ module.exports = {
             if (extra) {
                 for (const key in extra) {
                     model[key](...extra[key]);
-                    delete extra.key;
+                    delete extra[key];
                 }
             }
             if (isAssociation) {
