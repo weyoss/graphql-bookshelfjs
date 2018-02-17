@@ -15,30 +15,48 @@ Please make sure you have graphql and bookshelf installed.
 
 ## CONFIGURATION
 
+There are 2 configuration steps:
+
+1. At the level of your GraphQL schema and resolve functions, you should provide the resolver which will be called by
+the GraphQL engine for actually querying the data.
+
 ```javascript
-graphql( 
-    schema, 
-    query, 
-    null, 
-    { 
-        loaders: graphQLBookshelf.getLoaders() // include loaders in the context object for performing batch queries
+const graphQL = require('graphql');
+const graphQLBookshelf = require('graphql-bookshelfjs');
+
+const RootQuery =  new graphQL.GraphQLObjectType({
+    name: 'RootQuery',
+    fields: {
+        field: {
+            // ...
+
+            resolve: graphQLBookshelf.resolverFactory( SomeBookshelfModel ) // Provide the resolver
+        },
     }
-)
+});
+const graphQLSchema = new graphQL.GraphQLSchema({query: RootQuery});
 ```
 
-Note: 'loaders' is the only parameter needed to be initialized during graphql setup. 
+2. At the level of GraphQL query execution, include the data loaders in the context object for performing batch queries.
+
+```javascript
+const someQueryString = '...';
+graphQL.graphql(graphQLSchema, someQueryString, null, {
+        loaders: graphQLBookshelf.getLoaders() // include the loaders
+    }).then(function(result) {
+        // ...
+    });
+```
 
 ## USAGE
 
 ### EXAMPLE
 
 If you're new to the GraphQL ecosystem and have troubles getting a project up and running or maybe you are confused
-about how to use this library then check out the [example](https://github.com/weyoss/graphql-bookshelfjs/blob/master/example) 
-folder to get started.
+about how to use this library then check out the [EXAMPLE FOLDER](https://github.com/weyoss/graphql-bookshelfjs/blob/master/example)
+to get started.
 
-### HOW-TO
-
-The following shows how you could setup graphql-bookshelfjs with graphql. 
+### HOW-TO — STEP BY STEP
 
 Let's assume: 
 
@@ -52,7 +70,10 @@ Let's assume:
 #### BOOKSHELF MODELS
 
 ```javascript
-let dbConfig = {
+const knex = require('knex')(dbConfig);
+const bookshelf = require('bookshelf')(knex);
+
+const dbConfig = {
     "client": "mysql",
     "connection": {
         "host": "127.0.0.1",
@@ -63,17 +84,15 @@ let dbConfig = {
     },
     debug: true
 };
-let knex = require('knex')(dbConfig);
-let bookshelf = require('bookshelf')(knex);
 
-let Article = bookshelf.Model.extend({
+const Article = bookshelf.Model.extend({
     tableName: 'articles',
     user: function () {
         return this.belongsTo(User);
     }
 });
 
-let User = bookshelf.Model.extend({
+const User = bookshelf.Model.extend({
     tableName: 'users',
     notes: function () {
        return this.hasMany(Note);
@@ -89,24 +108,24 @@ let User = bookshelf.Model.extend({
     }
 });
 
-let Note = Bookshelf.Model.extend({
+const Note = Bookshelf.Model.extend({
     tableName: 'notes'
 });
 
-let Account = bookshelf.Model.extend({
+const Account = bookshelf.Model.extend({
     tableName: 'accounts'
 });
 
-let Profile = bookshelf.Model.extend({
+const Profile = bookshelf.Model.extend({
     tableName: 'profiles'
 });
 ```
 
-#### GRAPHQL TYPES
+#### DEFINNING GRAPHQL TYPES
 
 ```javascript
-let graphQL = require('graphql');
-let graphQLBookshelf = require('graphql-bookshelfjs');
+const graphQL = require('graphql');
+const graphQLBookshelf = require('graphql-bookshelfjs');
 
 let ArticleType = new graphQL.GraphQLObjectType({
     name: 'Article',
@@ -130,7 +149,7 @@ let ArticleType = new graphQL.GraphQLObjectType({
     }
 });
 
-let UserType = new graphQL.GraphQLObjectType({
+const UserType = new graphQL.GraphQLObjectType({
     name: 'User',
     fields: {
        id: {
@@ -157,8 +176,7 @@ let UserType = new graphQL.GraphQLObjectType({
        }
     }
 });
-
-let ProfileType = new graphQL.GraphQLObjectType({
+const ProfileType = new graphQL.GraphQLObjectType({
     name: 'Profile',
     fields: {
         id: {
@@ -176,7 +194,7 @@ let ProfileType = new graphQL.GraphQLObjectType({
     }
 });
 
-let AccountType = new graphQL.GraphQLObjectType({
+const AccountType = new graphQL.GraphQLObjectType({
     name: 'Account',
     fields: {
         id: {
@@ -188,7 +206,7 @@ let AccountType = new graphQL.GraphQLObjectType({
     }
 });
 
-let NoteType = new graphQL.GraphQLObjectType({
+const NoteType = new graphQL.GraphQLObjectType({
     name: 'Note',
     fields: {
        id: {
@@ -200,7 +218,7 @@ let NoteType = new graphQL.GraphQLObjectType({
     }
 });
 
-let RootQuery = new graphQL.GraphQLObjectType({
+const RootQuery = new graphQL.GraphQLObjectType({
     name: 'RootQuery',
     fields: {
         articles: {
@@ -232,10 +250,10 @@ let RootQuery = new graphQL.GraphQLObjectType({
 const graphQLSchema = new graphQL.GraphQLSchema({query: RootQuery});
 ```
 
-#### CLIENT QUERY SAMPLE
+#### GRAPHQL QUERY
 
 ```javascript
-let queryString = 
+const queryString =
 `{ 
     articles { 
         title, 
@@ -264,7 +282,7 @@ let queryString =
 }`;
 ```
 
-#### GRAPHQL INITIALIZATION
+#### GRAPHQL QUERY EXECUTION
 
 ```javascript
 graphQL.graphql( graphQLSchema, queryString, null, { loaders: graphQLBookshelf.getLoaders() }).then(function(result) {
@@ -365,12 +383,13 @@ let UserType = new graphQL.GraphQLObjectType({
            type: new graphQL.GraphQLList(AccountType),
            resolve: function resolver(modelInstance, args, context, info) {
                
-               // Here we can perform any required action/validation, process args, context, return with rejection, etc.
-               // before calling parent resolver
+               // Before invoking graphQLBookshelf.resolverFactory() and returning a resolver, any actions or
+               // validation rules can be performed and if for some reason something went wrong we can just return a
+               // Promise.reject('something_went_wrong') for example.
                
                // ...
                
-               // let's call the parent resolver
+               // Everything is OK, so let's call the parent resolver
                let parentResolver = graphQLBookshelf.resolverFactory(User);
                return parentResolver(modelInstance, args, context, info);
            }
