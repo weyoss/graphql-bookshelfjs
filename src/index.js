@@ -46,9 +46,20 @@ module.exports = {
                 model.where(`${model.tableName}.${key}`, args[key]);
             }
             if (extra) {
-                for (const key in extra) {
-                    model[key](...extra[key]);
-                    delete extra[key];
+                switch (typeof extra) {
+                    case 'function':
+                        extra(model);
+                        break;
+
+                    case 'object':
+                        for (const key in extra) {
+                            model[key](...extra[key]);
+                            delete extra[key];
+                        }
+                        break;
+
+                    default:
+                        return Promise.reject('Parameter [extra] should be either a function or an object');
                 }
             }
             if (isAssociation) {

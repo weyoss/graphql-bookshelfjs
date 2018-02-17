@@ -381,54 +381,55 @@ let UserType = new graphQL.GraphQLObjectType({
 
 ### USING 'extra' PARAMETER
 
-Starting from release 1.0.2, 'extra' parameter was added to resolver. 
+Starting from release 1.0.2, `extra` parameter was added to resolver.
 
 Query parameters from client requests are automatically translated into where closes. Sometimes we need to have more 
 control of our models using complex queries (when dealing with pagination for example). With the help of 'extra' 
 parameter we can apply any knex query builder method to our bookshelf model. 
 
-In the listing bellow you can see how you could use 'extra' parameter:
+`extra` parameter is optional. When provided, it should be either a function or an object. The listing bellow
+demonstrates how it can be used:
   
 ```javascript
-    let RootQuery = new graphQL.GraphQLObjectType({
-        name: 'RootQuery',
-        fields: {
-            articles: {
-                type: new graphQL.GraphQLList(ArticleType),
-                args: {
-                    user_id: {
-                        type: graphQL.GraphQLInt
-                    },
-                    published: {
-                        type: graphQL.GraphQLBoolean
-                    },
-                    from: {
-                        type: graphQL.GraphQLInt
-                    },
-                    count: {
-                        type: graphQL.GraphQLInt
-                    },
-                },
-                resolve: function resolver(modelInstance, args, context, info) {
-                    const count = args.count || 5;
-                    const extra = {
-                        query: [function(db) {
-                            db.limit( count );
-                        }],
-                        orderBy: ['id', 'DESC']
-                    };
-                    !args.from || (extra.where = ['id', '<', args.from]);
-                    
-                    // 'from' and 'count' parameters are not model attributes, so let's get rid of them
-                    delete args.from;
-                    delete args.count;
-                    
-                    const resolver = graphQLBookshelf.resolverFactory(models.Article);
-                    return resolver(modelInstance, args, context, info, extra);
-                }
+let RootQuery = new graphQL.GraphQLObjectType({
+    name: 'RootQuery',
+    fields: {
+        articles: {
+
+            // ...
+
+            resolve: function resolver(modelInstance, args, context, info) {
+                /*
+                // Defining extra using an object
+                const count = args.count || 5;
+                const extra = {
+                    query: [function (db) {
+                        db.limit(count);
+                    }],
+                    orderBy: ['id', 'DESC'],
+                };
+                !args.from || (extra.where = ['id', '<', args.from]);
+                */
+
+                // Defining extra using a function
+                const { count = 5, from } = args;
+                const extra = (model) => {
+                    model.query((db) => {
+                        db.limit(count);
+                    });
+                    model.orderBy('id', 'DESC');
+                    if (from) model.where('id', '<', from);
+                };
+
+                // 'from' and 'count' parameters are not model attributes, so let's get rid of them
+                const filteredArgs = _.omit(args, ['count', 'from']);
+
+                const resolverFn = graphQLBookshelf.resolverFactory(models.Article);
+                return resolverFn(modelInstance, filteredArgs, context, info, extra);
             },
-        }
-    });
+        },
+    }
+});
 ```
 
 To make it more clear, the following:
@@ -446,12 +447,16 @@ const extra = {
 is the same as: 
 
 ```javascript
+const knexQueryBuilder = model.query();
 knexQueryBuilder.query(function(db) {
     db.limit( count );
 });
 knexQueryBuilder.orderBy('id', 'DESC');
 knexQueryBuilder.where('id', '<', 10045);
 ```
+
+For the sake of simplicity defining `extra` using a function is recommended to be used instead of using an object. It
+is more clear and intuitive.
 
 ## CONTRIBUTING
 

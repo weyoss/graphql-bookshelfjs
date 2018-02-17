@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const graphQL = require('graphql');
 const graphQLBookshelf = require('graphql-bookshelfjs');
 
@@ -68,21 +69,33 @@ module.exports = function schema(models) {
                     },
                 },
                 resolve: function resolver(modelInstance, args, context, info) {
-                    const count = args.count || 5;
-                    const extra = {
-                        query: [function (db) {
+                    /*
+                     // Defining extra using an object
+                     const count = args.count || 5;
+                     const extra = {
+                         query: [function (db) {
                             db.limit(count);
-                        }],
-                        orderBy: ['id', 'DESC'],
+                         }],
+                         orderBy: ['id', 'DESC'],
+                     };
+                     !args.from || (extra.where = ['id', '<', args.from]);
+                     */
+
+                    // Defining extra using a function
+                    const { count = 5, from } = args;
+                    const extra = (model) => {
+                        model.query((db) => {
+                            db.limit(count);
+                        });
+                        model.orderBy('id', 'DESC');
+                        if (from) model.where('id', '<', from);
                     };
-                    !args.from || (extra.where = ['id', '<', args.from]);
 
                     // 'from' and 'count' parameters are not model attributes, so let's get rid of them
-                    delete args.from;
-                    delete args.count;
+                    const filteredArgs = _.omit(args, ['count', 'from']);
 
                     const resolverFn = graphQLBookshelf.resolverFactory(models.Article);
-                    return resolverFn(modelInstance, args, context, info, extra);
+                    return resolverFn(modelInstance, filteredArgs, context, info, extra);
                 },
             },
         },
@@ -108,6 +121,8 @@ module.exports = function schema(models) {
                     },
                 },
                 resolve: function resolver(modelInstance, args, context, info) {
+                    /*
+                    // Defining extra using an object
                     const count = args.count || 5;
                     const extra = {
                         query: [function (db) {
@@ -116,13 +131,23 @@ module.exports = function schema(models) {
                         orderBy: ['id', 'DESC'],
                     };
                     !args.from || (extra.where = ['id', '<', args.from]);
+                    */
+
+                    // Defining extra using a function
+                    const { count = 5, from } = args;
+                    const extra = (model) => {
+                        model.query((db) => {
+                            db.limit(count);
+                        });
+                        model.orderBy('id', 'DESC');
+                        if (from) model.where('id', '<', from);
+                    };
 
                     // 'from' and 'count' parameters are not model attributes, so let's get rid of them
-                    delete args.from;
-                    delete args.count;
+                    const filteredArgs = _.omit(args, ['count', 'from']);
 
                     const resolverFn = graphQLBookshelf.resolverFactory(models.Article);
-                    return resolverFn(modelInstance, args, context, info, extra);
+                    return resolverFn(modelInstance, filteredArgs, context, info, extra);
                 },
             },
         },
