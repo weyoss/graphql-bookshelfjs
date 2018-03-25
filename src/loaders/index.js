@@ -108,12 +108,15 @@ function belongsToManyLoader(model, joinTableName, foreignKey, otherKey, targetI
         loader = new DataLoader((keys) => {
             return model.query((db) => {
                 Object.assign(db, queryBuilder || {});
-                db.select([`${model.prototype.tableName}.*`, `${joinTableName}.${foreignKey}`, `${joinTableName}.${otherKey}`])
-                    .innerJoin(
-                        joinTableName, `${model.prototype.tableName}.${targetIdAttribute}`,
-                        '=',
-                        `${joinTableName}.${otherKey}`)
-                    .where(`${joinTableName}.${foreignKey}`, 'in', keys);
+                db.select([
+                    `${model.prototype.tableName}.*`,
+                    `${joinTableName}.${foreignKey}`,
+                    `${joinTableName}.${otherKey}`,
+                ]).innerJoin(
+                    joinTableName, `${model.prototype.tableName}.${targetIdAttribute}`,
+                    '=',
+                    `${joinTableName}.${otherKey}`)
+                .where(`${joinTableName}.${foreignKey}`, 'in', keys);
             })
             .fetchAll()
             .then((items) => {

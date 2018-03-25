@@ -48,7 +48,7 @@ describe('Case 6', function () {
                     ]);
                 },
                 function () {
-                    expect(query.sql).to.equal('select `accounts`.*, `users_accounts`.* from `accounts` inner join `users_accounts` on `accounts`.`id` = `users_accounts`.`account_id` where `users_accounts`.`user_id` in (?, ?, ?)');
+                    expect(query.sql).to.equal('select `accounts`.*, `users_accounts`.`user_id`, `users_accounts`.`account_id` from `accounts` inner join `users_accounts` on `accounts`.`id` = `users_accounts`.`account_id` where `users_accounts`.`user_id` in (?, ?, ?)');
                     expect(query.bindings).to.eql([1000, 1001, 1002]);
                     query.response([
                         {id: 4000, user_id: 1000, name: "Viewer account"},
@@ -58,7 +58,7 @@ describe('Case 6', function () {
                     ]);
                 },
                 function () {
-                    expect(query.sql).to.equal('select `accounts`.*, `users_accounts`.* from `accounts` inner join `users_accounts` on `accounts`.`id` = `users_accounts`.`account_id` where `access` = ? and `users_accounts`.`user_id` in (?, ?, ?)');
+                    expect(query.sql).to.equal('select `accounts`.*, `users_accounts`.`user_id`, `users_accounts`.`account_id` from `accounts` inner join `users_accounts` on `accounts`.`id` = `users_accounts`.`account_id` where `access` = ? and `users_accounts`.`user_id` in (?, ?, ?)');
                     expect(query.bindings).to.eql(['admin', 1000, 1001, 1002]);
                     query.response([
                         {id: 4001, user_id: 1000, name: "Admin account"}
