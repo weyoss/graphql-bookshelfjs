@@ -155,7 +155,9 @@ function belongsTo(target) {
             const targetIdAttribute = this.relatedData.key('targetIdAttribute');
             const parentFK = this.relatedData.key('parentFk');
             const knex = this._knex;
-            return modelLoader(model, targetIdAttribute, 'belongsTo', knex).load(parentFK);
+            return (parentFK !== null) ?
+                modelLoader(model, targetIdAttribute, 'belongsTo', knex).load(parentFK) :
+                Promise.resolve(null);
         };
     });
 }
