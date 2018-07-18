@@ -21,6 +21,9 @@ module.exports = function (bookshelf) {
         },
         profile: function () {
             return this.hasOne(Profile);
+        },
+        articles: function () {
+            return this.hasMany(Article);
         }
     });
 
