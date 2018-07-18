@@ -42,8 +42,9 @@ module.exports = {
         return function resolver(modelInstance, args, context, info, extra) {
             const isAssociation = (typeof Model.prototype[info.fieldName] === 'function');
             const model = isAssociation ? modelInstance.related(info.fieldName) : new Model();
+            const tableName = typeof model.tableName === 'string' ? model.tableName : model.tableName();
             for (const key in args) {
-                model.where(`${model.tableName}.${key}`, args[key]);
+                model.query('where', `${tableName}.${key}`, '=', args[key]);
             }
             if (extra) {
                 switch (typeof extra) {

@@ -48,7 +48,7 @@ module.exports = function (models) {
 
     let UserType = new graphQL.GraphQLObjectType({
         name: 'User',
-        fields: {
+        fields: () => ({
             id: {
                 type: graphQL.GraphQLString
             },
@@ -70,8 +70,17 @@ module.exports = function (models) {
             admin_accounts: {
                 type: new graphQL.GraphQLList(AccountType),
                 resolve: graphQLBookshelf.resolverFactory(models.User)
+            },
+            articles: {
+                type: new graphQL.GraphQLList(ArticleType),
+                args: {
+                    is_published: {
+                        type: graphQL.GraphQLBoolean
+                    }
+                },
+                resolve: graphQLBookshelf.resolverFactory(models.User)
             }
-        }
+        })
     });
 
     let ArticleType = new graphQL.GraphQLObjectType({
@@ -120,6 +129,16 @@ module.exports = function (models) {
                     }
                 },
                 resolve: graphQLBookshelf.resolverFactory(models.Article)
+            },
+            user: {
+                type: UserType,
+                args: {
+                    id: {
+                        name: 'id',
+                        type: new graphQL.GraphQLNonNull(graphQL.GraphQLID)
+                    }
+                },
+                resolve: graphQLBookshelf.resolverFactory(models.User)
             },
             users: {
                 type: new graphQL.GraphQLList(UserType),
